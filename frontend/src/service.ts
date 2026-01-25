@@ -105,6 +105,13 @@ const zGetTranscriptResponse = z.union([
   }),
 ]);
 
+/**
+ * Validate inputs and call the `getTranscript` API
+ *
+ * @param password - credentials
+ * @param studentIDStr - student ID (error if not a positive integer)
+ * @returns a validation error or API response
+ */
 export async function getTranscript(
   password: string,
   studentIDStr: string,
