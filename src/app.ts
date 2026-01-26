@@ -13,14 +13,14 @@ const zAddStudentBody = z.object({
   password: z.string(),
   studentName: z.string(),
 });
-app.post("/api/addStudent", (req, res) => {
+app.post("/api/addStudent", async (req, res) => {
   const body = zAddStudentBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).send({ error: "Poorly-formed request" });
   } else if (!checkPassword(body.data.password)) {
     res.status(403).send({ error: "Invalid credentials" });
   } else {
-    const id = db.addStudent(body.data.studentName);
+    const id = await db.addStudent(body.data.studentName);
     res.send({ studentID: id });
   }
 });
@@ -28,17 +28,17 @@ app.post("/api/addStudent", (req, res) => {
 /* Handle API requests to add a grade to a student */
 const zAddGradeBody = z.object({
   password: z.string(),
-  studentID: z.int().gte(0),
+  studentID: z.uuid(),
   courseName: z.string(),
   courseGrade: z.number().gte(0).lte(100),
 });
-app.post("/api/addGrade", (req, res) => {
+app.post("/api/addGrade", async (req, res) => {
   try {
     const body = zAddGradeBody.parse(req.body);
     if (!checkPassword(body.password)) {
       res.status(403).send({ error: "Invalid credentials" });
     } else {
-      db.addGrade(body.studentID, body.courseName, body.courseGrade);
+      await db.addGrade(body.studentID, body.courseName, body.courseGrade);
       res.send({ success: true });
     }
   } catch (e) {
@@ -49,9 +49,9 @@ app.post("/api/addGrade", (req, res) => {
 /* Handle API requests to retrieve a student transcript */
 const zGetTranscriptBody = z.object({
   password: z.string(),
-  studentID: z.int().gte(0),
+  studentID: z.uuid(),
 });
-app.post("/api/getTranscript", (req, res) => {
+app.post("/api/getTranscript", async (req, res) => {
   const body = zGetTranscriptBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).send({ error: "Poorly-formed request" });
@@ -60,7 +60,7 @@ app.post("/api/getTranscript", (req, res) => {
   } else {
     let response: { success: true; transcript: Transcript } | { success: false };
     try {
-      const transcript = db.getTranscript(body.data.studentID);
+      const transcript = await db.getTranscript(body.data.studentID);
       response = { success: true, transcript };
     } catch {
       response = { success: false };
