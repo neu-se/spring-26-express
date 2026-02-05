@@ -32,7 +32,7 @@ jobs:
         run: npm run lint
 
       - name: Load Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chrome
 
       - name: Tests
         run: npm run test
