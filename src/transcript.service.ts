@@ -1,48 +1,23 @@
+import { Keyv } from "keyv";
+import { randomUUID } from "node:crypto";
 import { type StudentID, type Student, type Course, type Transcript } from "./types.ts";
 
 export class TranscriptDB {
   /**
    * The list of transcripts in the database
    */
-  private _transcripts: Transcript[] = [];
-
-  /**
-   * The last assigned student ID
-   */
-  private _lastID: number;
-
-  constructor() {
-    this._lastID = 0;
-  }
+  private _transcripts: Keyv<Transcript> = new Keyv();
 
   /**
    * Adds a new student to the database
    * @param {string} newName - the name of the student
    * @returns {StudentID} - the newly-assigned ID for the new student
    */
-  addStudent(newName: string): StudentID {
-    this._lastID += 1;
-    const newID = this._lastID;
+  async addStudent(newName: string): Promise<StudentID> {
+    const newID = randomUUID();
     const newStudent: Student = { studentID: newID, studentName: newName };
-    this._transcripts.push({ student: newStudent, grades: [] });
+    await this._transcripts.set(newID, { student: newStudent, grades: [] });
     return newID;
-  }
-
-  /**
-   * Returns the index of the transcript for a given student ID in the
-   * database. If this function returns successfully, the id can be assumed to
-   * be a valid student ID.
-   *
-   * @param id - the id to look up
-   * @returns the index of this transcript for this student ID in the `_transcripts` array
-   * @throws if the there is no transcript with the given student ID
-   */
-  private _getIndexForId(id: StudentID): number {
-    const index: number = this._transcripts.findIndex((t) => t.student.studentID === id);
-    if (index === -1) {
-      throw new Error(`Transcript not found for student with ID ${id}`);
-    }
-    return index;
   }
 
   /**
@@ -52,9 +27,10 @@ export class TranscriptDB {
    * @returns the transcript for this student with this ID
    * @throws if the there is no transcript with the given student ID
    */
-  getTranscript(id: StudentID): Transcript {
-    const index = this._getIndexForId(id);
-    return this._transcripts[index];
+  async getTranscript(id: StudentID): Promise<Transcript> {
+    const transcript = await this._transcripts.get(id);
+    if (!transcript) throw new Error(`Transcript not found for student with ID ${id}`);
+    return transcript;
   }
 
   /**
@@ -65,8 +41,12 @@ export class TranscriptDB {
    * @param courseGrade - Student's grade in the course
    * @throws if the there is no transcript with the given student ID
    */
-  addGrade(id: StudentID, courseName: Course, courseGrade: number): void {
-    const index = this._getIndexForId(id);
-    this._transcripts[index].grades.push({ course: courseName, grade: courseGrade });
+  async addGrade(id: StudentID, courseName: Course, courseGrade: number): Promise<void> {
+    const transcript = await this._transcripts.get(id);
+    if (!transcript) throw new Error(`Transcript not found for student with ID ${id}`);
+    await this._transcripts.set(id, {
+      ...transcript,
+      grades: [...transcript.grades, { course: courseName, grade: courseGrade }],
+    });
   }
 }
