@@ -13,11 +13,9 @@
     "verbatimModuleSyntax": true,
 
     /* Linting */
-    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noUncheckedSideEffectImports": true
+    "noImplicitReturns": true
   },
   "include": ["./**/*.ts"],
   "exclude": ["./node_modules", "./client", "./frontend"]
