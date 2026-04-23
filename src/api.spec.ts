@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import supertest, { type Response } from "supertest";
 import { app } from "./app.ts";
+import { randomUUID } from "node:crypto";
 let response: Response;
 
 describe(`POST /api/addStudent`, () => {
@@ -9,7 +10,7 @@ describe(`POST /api/addStudent`, () => {
       .post(`/api/addStudent`)
       .send({ password: "password", studentName: "Bob" });
     expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual({ studentID: expect.any(Number) });
+    expect(response.body).toStrictEqual({ studentID: expect.any(String) });
   });
 
   it("should reject invalid payloads", async () => {
@@ -86,7 +87,7 @@ describe(`POST /api/getTranscript`, () => {
   it("should report failing to get the transcript for a nonexistent student", async () => {
     response = await supertest(app)
       .post(`/api/getTranscript`)
-      .send({ password: "password", studentID: id + 100 + Math.floor(Math.random() * 100000) });
+      .send({ password: "password", studentID: randomUUID() });
     expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({ success: false });
   });
